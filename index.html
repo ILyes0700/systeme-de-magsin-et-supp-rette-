@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier Intelligent</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --accent: #f43f5e;
+            --background: #f8fafc;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding: 2rem;
+            color: var(--text);
+        }
+
+        .scanner-container, .form-container {
+            flex: 1;
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        #qr-reader {
+            width: 100%;
+            height: 300px;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #000;
+            margin: 1.5rem 0;
+        }
+
+       
+
+        #panier {
+            flex: 1 1 400px;
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: white;
+        }
+
+        button.secondary {
+            background: var(--accent);
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+.quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quantity-btn.decrease {
+            background-color: var(--accent);
+        }
+
+        .quantity-btn.decrease:hover {
+            background-color: #dc2626;
+        }
+
+        .quantity-input input {
+            width: 50px;
+            padding: 0.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .quantity-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Animation pour les changements de quantité */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .quantity-change {
+            animation: pulse 0.3s ease-in-out;
+        }
+        #start-scan-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        #stop-btn {
+            background: var(--accent);
+            color: white;
+        }
+
+        .like-btn {
+            background: none;
+            color: #64748b;
+            padding: 0.5rem;
+        }
+
+        .like-btn.liked {
+            color: var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: var(--background);
+            font-weight: 600;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+        }
+
+        .remove-btn {
+            color: var(--accent);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: #dc2626;
+        }
+
+        .total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--secondary);
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 0.75rem;
+            text-align: right;
+        }
+        .total .button-group {
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            #scanner-container, #panier {
+                width: 100%;
+                flex: none;
+            }
+        }
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 60px;
+            background: #ffffff;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .nav-icon {
+            margin: 18px 0;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            color: #6366f1;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .nav-icon:hover {
+            background: #6366f110;
+            transform: scale(1.1);
+        }
+
+        .nav-icon.active {
+            color: white;
+            background: #6366f1;
+        }
+
+        .nav-icon i {
+            font-size: 1.5rem;
+        }
+
+        /* Modification du body pour l'espacement */
+        body {
+            margin-right: 60px; /* Espace pour la sidebar */
+            flex-wrap: nowrap;
+        }
+        .iframe-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 30%;
+        height: 100%;
+        background: #ffffff00;
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Conteneur de la calculatrice */
+    .calculator-frame {
+        width: 500px;
+        height: 480px;
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transform: scale(0.9);
+        opacity: 0;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .calculator-frame.active {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    /* Iframe stylé */
+    .styled-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* Bouton de fermeture */
+    .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        z-index: 2001;
+    }
+
+    </style>
+</head>
+
+<body>
+    <div class="iframe-overlay" id="calcOverlay"> 
+        <button class="close-btn" onclick="closeCalculator()">&times;</button>
+        <div class="calculator-frame" id="calcFrame">
+            <iframe src="calcul.html" class="styled-iframe" title="Calculatrice"></iframe>
+        </div>
+    </div>
+    
+    <!-- Modale pour le générateur de QR code -->
+    <div class="iframe-overlay" id="qrOverlay">
+        <button class="close-btn" onclick="closeqr()">&times;</button>
+        <div class="calculator-frame" id="qrFrame">
+            <iframe src="gen.php" class="styled-iframe" title="Générer QR Code"></iframe>
+        </div>
+    </div>
+    <div class="sidebar">
+        <a href="calcul.html" class="nav-icon" title="Calculatrice" onclick="showCalculator(event)">
+            <i class="fas fa-calculator"></i>
+        </a>
+        
+        <a href="#panier" class="nav-icon" title="Panier">
+            <i class="fas fa-shopping-cart"></i>
+        </a>
+        
+        <a href="historique.php" class="nav-icon" title="Paramètres">
+            <i class="fas fa-history"></i>
+        </a>
+        <a href="ajouter_produit.html" class="nav-icon active" title="Ajouter produit">
+            <i class="fas fa-plus"></i>
+        </a>
+        
+        <a href="karni.php" class="nav-icon" title="Paramètres"> 
+            <i class="fas fa-users"></i>
+        </a>
+        <a href="note.php" class="nav-icon" title="Note">
+            <i class="fas fa-edit"></i>
+        </a>
+        <a href="a4ya.php" class="nav-icon" title="sbasa">
+            <i class="fas fa-boxes"></i> 
+        </a>
+        <a href="gen.php" class="nav-icon" title="Générer QR code" onclick="showqr(event)">
+            <i class="fas fa-qrcode"></i>
+        </a>
+        
+    </div>
+    
+    <div class="scanner-container">
+        <h2><i class="fas fa-qrcode"></i> 🛒 Scanner QR Code</h2>
+        <div id="qr-reader">
+            <div class="scanner-overlay"></div>
+        </div>
+        <div id="result">
+            <p><strong>Code QR scanné :</strong></p>
+            <p id="scanned-result">Aucun code détecté</p>
+        </div>
+        <div class="button-group">
+            <button id="start-scan-btn"><i class="fas fa-play"></i> Démarrer</button>
+            <button id="stop-btn" class="secondary"><i class="fas fa-stop"></i> Arrêter</button>
+        </div>
+    </div>
+
+    <div id="panier">
+        <h2>📦 Votre Panier</h2>
+        <table id="panier-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Nom</th>
+                    <th>Prix</th>
+                    <th>Quantité</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="panier-items">
+                <!-- Les articles du panier seront ajoutés ici -->
+            </tbody>
+        </table>
+        <div class="total">
+            Total : <span id="total-price">0</span> TND
+            <div class="button-group">
+                <button onclick="saveCart()" class="secondary">
+                    <i class="fas fa-save"></i> Sauvegarder
+                </button>
+                <button onclick="clearCart()" class="secondary">
+                    <i class="fas fa-trash"></i> Vider
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <script> 
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        let panier = [];
+        let total = 0;
+    
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById("scanned-result").textContent = decodedText;
+            // Appel AJAX pour récupérer les informations du produit basé sur le code QR
+            fetch(`get_product_info.php?id=${decodedText}`)
+                .then(response => response.json())
+                .then(product => {
+                    if (product.error) {
+                        alert('Produit non trouvé');
+                    } else {
+                        // Ajouter le produit au panier
+                        addToCart(product);
+                        restartScanning();  // Relance le scanner après l'ajout
+                    }
+                });
+            html5QrCode.stop();
+        }
+    
+        function onScanError(errorMessage) {
+            console.error(errorMessage);
+        }
+    
+        function startScanning() {
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess, onScanError)
+                .catch(err => console.error(err));
+            document.getElementById('start-scan-btn').style.display = 'none';
+            document.getElementById('stop-btn').style.display = 'inline-block';
+        }
+    
+        function stopScanning() {
+            html5QrCode.stop().catch(err => console.error("Erreur lors de l'arrêt du scanner"));
+            document.getElementById('start-scan-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'none';
+        }
+    
+        // Relancer le scanner après chaque ajout de produit
+        function restartScanning() {
+            setTimeout(() => {
+                startScanning();  // Redémarre le scanner après un délai de 1 seconde
+            }, 1000);
+        }
+    
+        document.getElementById('start-scan-btn').addEventListener('click', startScanning);
+        document.getElementById('stop-btn').addEventListener('click', stopScanning);
+    
+        function addToCart(product) {
+            let productInCart = panier.find(item => item.id === product.id);
+            if (productInCart) {
+                productInCart.quantity += 1;
+            } else {
+                panier.push({
+                    id: product.id,
+                    nom: product.nom,
+                    prix: product.prix,
+                    image: product.image,
+                    quantity: 1
+                });
+            }
+            updateCart();
+        }
+    
+        function updateCart() {
+            let panierItemsHTML = '';
+            total = 0;
+            panier.forEach(item => {
+                let itemTotal = item.prix * item.quantity;
+                total += itemTotal;
+                panierItemsHTML += `
+                    <tr data-id="${item.id}">
+                        <td><img src="${item.image}" class="product-image" alt="${item.nom}"></td>
+                        <td>${item.nom} <button class="like-btn" onclick="toggleLike(this)"><i class="far fa-heart"></i></button></td>
+                        <td>${item.prix} TND</td>
+                        <td>
+                            <div class="quantity-control">
+                                <button class="quantity-btn decrease" onclick="changeQuantity(${item.id}, -1)">−</button>
+                                <div class="quantity-input">
+                                    <input type="number" value="${item.quantity}" min="1" 
+                                        onchange="updateQuantity(${item.id}, this.value)"
+                                        class="quantity-display">
+                                </div>
+                                <button class="quantity-btn increase" onclick="changeQuantity(${item.id}, 1)">+</button>
+                            </div>
+                        </td>
+                        <td>${itemTotal.toFixed(2)} TND</td>
+                        <td><span class="remove-btn" onclick="removeItem(${item.id})"><i class="fas fa-trash"></i></span></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('panier-items').innerHTML = panierItemsHTML;
+            document.getElementById('total-price').textContent = total.toFixed(2);
+        }
+    
+        function changeQuantity(id, delta) {
+            const item = panier.find(item => item.id === id);
+            if (item) {
+                const newQuantity = item.quantity + delta;
+                if (newQuantity >= 1) {
+                    item.quantity = newQuantity;
+                    updateCart();
+                    
+                    // Ajout d'une animation visuelle
+                    const input = document.querySelector(`tr[data-id="${id}"] .quantity-display`);
+                    if (input) {
+                        input.classList.add('quantity-change');
+                        setTimeout(() => {
+                            input.classList.remove('quantity-change');
+                        }, 300);
+                    }
+                }
+            }
+        }
+    
+        function toggleLike(btn) {
+            btn.classList.toggle('liked');
+            btn.querySelector('i').classList.toggle('far');
+            btn.querySelector('i').classList.toggle('fas');
+        }
+    
+        function removeItem(id) {
+            panier = panier.filter(item => item.id !== id);  // Supprimer l'élément du panier
+            updateCart();
+        }
+    
+        function updateQuantity(id, quantity) {
+            let item = panier.find(item => item.id === id);
+            if (item) {
+                item.quantity = parseInt(quantity);
+                updateCart();
+            }
+        }
+    
+        function showCalculator(e) {
+    e.preventDefault();
+    const overlay = document.getElementById('calcOverlay');
+    const frame = document.getElementById('calcFrame');
+    
+    overlay.style.display = 'flex';
+    setTimeout(() => frame.classList.add('active'), 10);
+
+    // Fermeture au clic externe
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closeCalculator();
+    });
+}
+
+function closeCalculator() {
+    const overlay = document.getElementById('calcOverlay');
+    const frame = document.getElementById('calcFrame');
+    
+    frame.classList.remove('active');
+    setTimeout(() => overlay.style.display = 'none', 300);
+}
+
+function showqr(e) {
+    e.preventDefault();
+    const overlay = document.getElementById('qrOverlay');
+    const frame = document.getElementById('qrFrame');
+    
+    overlay.style.display = 'flex';
+    setTimeout(() => frame.classList.add('active'), 10);
+
+    // Fermeture au clic externe
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closeqr();
+    });
+}
+
+function closeqr() {
+    const overlay = document.getElementById('qrOverlay');
+    const frame = document.getElementById('qrFrame');
+    
+    frame.classList.remove('active');
+    setTimeout(() => overlay.style.display = 'none', 300);
+}
+
+        function clearCart() {
+    panier = [];
+    updateCart();
+    alert("Panier vidé !");
+}
+
+    async function saveCart() {
+    try {
+        console.log("🔄 Tentative de sauvegarde...");
+        
+        // Debug 1: Vérifier le contenu du panier
+        console.log("📦 Contenu du panier:", JSON.stringify(panier, null, 2));
+        
+        const response = await fetch('save_cart.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(panier)
+        });
+        
+        // Debug 2: Vérifier la réponse HTTP brute
+        console.log("⚡ Réponse HTTP:", response);
+        
+        const result = await response.json();
+        console.log("📨 Réponse JSON:", result);
+
+        if (!response.ok) throw new Error(result.error || 'Erreur inconnue');
+        alert("✅ Sauvegarde réussie ! ID: " + result.inserted_id);
+        
+    } catch (error) {
+        console.error("🔥 Erreur:", error);
+        alert("❌ Échec: " + error.message);
+    }
+}
+
+
+    </script>
+    
+</body>
+
+</html>

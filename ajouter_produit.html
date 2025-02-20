@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Produit</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --accent: #f43f5e;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 60px;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            z-index: 1000;
+        }
+
+        .nav-icon {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            color: #6366f1;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .nav-icon:hover {
+            background: #6366f110;
+            transform: scale(1.1);
+        }
+
+        .nav-icon.active {
+            color: white;
+            background: #6366f1;
+        }
+
+        .nav-icon i {
+            font-size: 1.5rem;
+        }
+
+        /* Ajustement du body */
+        body {
+            margin-right: 60px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--text);
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .scanner-container, .form-container {
+            flex: 1;
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        #qr-reader {
+            width: 100%;
+            height: 300px;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #000;
+            margin: 1.5rem 0;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 70%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 1rem;
+            pointer-events: none;
+            animation: scan 2.5s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { top: 10%; opacity: 1; }
+            50% { top: 90%; opacity: 0.8; }
+            100% { top: 10%; opacity: 1; }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: white;
+        }
+
+        button.secondary {
+            background: var(--accent);
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .form-group {
+            margin: 1.5rem 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        input[type="file"] {
+            padding: 0.5rem;
+        }
+
+        #result {
+            padding: 1rem;
+            background: var(--background);
+            border-radius: 0.75rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        #scanned-result {
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            #qr-reader {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- Barre de navigation latérale -->
+<div class="sidebar">
+    <a href="calcul.html" class="nav-icon" title="Calculatrice" onclick="showCalculator(event)">
+        <i class="fas fa-calculator"></i>
+    </a>
+    
+    <a href="#panier" class="nav-icon" title="Panier">
+        <i class="fas fa-shopping-cart"></i>
+    </a>
+    
+    <a href="historique.php" class="nav-icon" title="Paramètres">
+        <i class="fas fa-history"></i>
+    </a>
+    
+    <a href="karni.php" class="nav-icon" title="Paramètres"> 
+        <i class="fas fa-users"></i>
+    </a>
+    <a href="note.php" class="nav-icon" title="Note">
+        <i class="fas fa-edit"></i>
+    </a>
+    <a href="a4ya.php" class="nav-icon" title="sbasa">
+        <i class="fas fa-boxes"></i> 
+    </a>
+    
+</div>
+<div class="container">
+    <!-- Contenu existant -->
+    <div class="scanner-container">
+        <h2><i class="fas fa-qrcode"></i> Scanner QR Code</h2>
+        <div id="qr-reader">
+            <div class="scanner-overlay"></div>
+        </div>
+        <div id="result">
+            <p><strong>Code QR scanné :</strong></p>
+            <p id="scanned-result">Aucun code détecté</p>
+        </div>
+        <div class="button-group">
+            <button id="start-scan-btn"><i class="fas fa-play"></i> Démarrer</button>
+            <button id="stop-btn" class="secondary"><i class="fas fa-stop"></i> Arrêter</button>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h2><i class="fas fa-cube"></i> Ajouter un produit</h2>
+        <form id="product-form" method="post" action="ajouter_produit.php" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="product-name">Nom du produit</label>
+                <input type="text" id="product-name" name="nom" required>
+            </div>
+            <div class="form-group">
+                <label for="product-image">Image du produit</label>
+                <input type="file" id="product-image" name="image" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="product-price">Prix (€)</label>
+                <input type="number" id="product-price" name="prix" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="product-qr">Code QR</label>
+                <input type="text" id="product-qr" name="codeqr" readonly>
+            </div>
+            <button type="submit" class="secondary"><i class="fas fa-plus-circle"></i> Ajouter le produit</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let html5Qrcode;
+    let isScanning = false;
+
+    async function onScanSuccess(decodedText) {
+        document.getElementById('scanned-result').textContent = decodedText;
+        document.getElementById('product-qr').value = decodedText;
+        stopScanning(); // Arrêter immédiatement après détection
+    }
+
+    async function startScanning() {
+        if (!html5Qrcode) {
+            html5Qrcode = new Html5Qrcode("qr-reader", { useBarCodeDetectorIfSupported: true });
+        }
+
+        try {
+            await html5Qrcode.start(
+                { facingMode: "environment" }, // Caméra arrière par défaut
+                {
+                    fps: 60, // Augmenter les FPS pour une meilleure détection
+                    qrbox: { width: 500, height: 500 }, // Augmenter la zone de détection
+                    disableFlip: false // Permet de scanner un QR code inversé
+                },
+                onScanSuccess
+            );
+
+            isScanning = true;
+            updateScannerUI();
+        } catch (err) {
+            console.error("Erreur du scanner :", err);
+        }
+    }
+
+    function stopScanning() {
+        if (html5Qrcode) {
+            html5Qrcode.stop().then(() => {
+                isScanning = false;
+                updateScannerUI();
+            }).catch(console.error);
+        }
+    }
+
+    function updateScannerUI() {
+        document.getElementById('start-scan-btn').style.display = isScanning ? 'none' : 'flex';
+        document.getElementById('stop-btn').style.display = isScanning ? 'flex' : 'none';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById('start-scan-btn').addEventListener('click', startScanning);
+        document.getElementById('stop-btn').addEventListener('click', stopScanning);
+    });
+</script>
+
+</body>
+</html>
