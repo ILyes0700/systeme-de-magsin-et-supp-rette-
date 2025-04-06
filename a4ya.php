@@ -68,12 +68,12 @@ try {
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';
     $mail->SMTPAuth = true;
-    $mail->Username = 'pharfind@gmail.com';
-    $mail->Password = 'rfqdlvatmnuklgtb';
+    $mail->Username = '';
+    $mail->Password = '';
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = 587;
 
-    $mail->setFrom('pharfind@gmail.com', 'Hamrouni');
+    $mail->setFrom('', 'Hamrouni');
     $mail->addAddress($recipient_email);
     $mail->isHTML(true);
     $mail->Subject = 'Détails de la card : '.$card['title'];
